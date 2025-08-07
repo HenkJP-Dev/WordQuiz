@@ -520,9 +520,12 @@ input:checked+.slider:before {
 
 /* Edit List Modal */
 .edit-modal .modal-content {
-    max-width: 700px;
-    max-height: 85vh;
+    max-width: 90vw;
+    width: 800px;
+    max-height: 90vh;
+    height: 90vh;
     overflow-y: auto;
+    margin: 5vh auto;
 }
 
 .edit-header {
@@ -602,7 +605,7 @@ input:checked+.slider:before {
     display: flex;
     flex-direction: column;
     gap: 10px;
-    max-height: 300px;
+    max-height: 400px;
     overflow-y: auto;
 }
 
@@ -1144,6 +1147,19 @@ input:checked+.slider:before {
     .json-actions .btn {
         min-width: auto;
         width: 100%;
+    }
+
+    .edit-modal .modal-content {
+        width: 95vw;
+        max-width: none;
+        height: 95vh;
+        max-height: 95vh;
+        margin: 2.5vh auto;
+        padding: 15px;
+    }
+
+    .words-list {
+        max-height: 300px;
     }
 }
 

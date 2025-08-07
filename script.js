@@ -247,21 +247,21 @@ class WordListManager {
                     "id": "1705312200000abc123",
                     "name": "listname",
                     "sourceLanguage": "Language to learn",
-                    "targetLanguage": "User Language",
+                    "translationLanguage": "User Language",
                     "words": [
                         {
                             "source": "word1",
-                            "target": "translation1",
+                            "translation": "translation1",
                             "addedAt": "2024-01-15T10:30:00.000Z"
                         },
                         {
                             "source": "word2",
-                            "target": "translation2",
+                            "translation": "translation2",
                             "addedAt": "2024-01-15T10:30:00.000Z"
                         },
                         {
                             "source": "word3",
-                            "target": "translation3",
+                            "translation": "translation3",
                             "addedAt": "2024-01-15T10:30:00.000Z"
                         }
                     ],
@@ -301,21 +301,21 @@ class WordListManager {
                     "id": "1705312200000abc123",
                     "name": "listname",
                     "sourceLanguage": "Language to learn",
-                    "targetLanguage": "User Language",
+                    "translationLanguage": "User Language",
                     "words": [
                         {
                             "source": "word1",
-                            "target": "translation1",
+                            "translation": "translation1",
                             "addedAt": "2024-01-15T10:30:00.000Z"
                         },
                         {
                             "source": "word2",
-                            "target": "translation2",
+                            "translation": "translation2",
                             "addedAt": "2024-01-15T10:30:00.000Z"
                         },
                         {
                             "source": "word3",
-                            "target": "translation3",
+                            "translation": "translation3",
                             "addedAt": "2024-01-15T10:30:00.000Z"
                         }
                     ],
