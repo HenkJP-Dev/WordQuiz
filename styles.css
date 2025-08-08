@@ -1244,6 +1244,33 @@ input:checked+.slider:before {
     line-height: 1.5;
 }
 
+.confirm-instruction {
+    color: var(--text-primary);
+    font-weight: 600;
+    margin-bottom: 10px !important;
+}
+
+.confirm-input {
+    width: 100%;
+    padding: 10px 12px;
+    border: 2px solid var(--border-color);
+    border-radius: 6px;
+    font-size: 1rem;
+    background: var(--bg-secondary);
+    color: var(--text-primary);
+    transition: border-color 0.3s ease;
+    margin-top: 10px;
+}
+
+.confirm-input:focus {
+    outline: none;
+    border-color: #667eea;
+}
+
+.confirm-input::placeholder {
+    color: var(--text-muted);
+}
+
 .confirm-actions {
     display: flex;
     gap: 15px;
@@ -1433,6 +1460,11 @@ input:checked+.slider:before {
 }
 
 .json-structure-buttons {
+    display: flex;
+    gap: 10px;
+}
+
+.data-management-buttons {
     display: flex;
     gap: 10px;
 }

@@ -117,6 +117,13 @@
                                         Voorbeeld</button>
                                 </div>
                             </div>
+                            <div class="setting-item">
+                                <span class="setting-label">Gegevens Verwijderen</span>
+                                <div class="data-management-buttons">
+                                    <button class="btn btn-danger btn-small" id="deleteAllListsBtn">Alle Lijsten
+                                        Verwijderen</button>
+                                </div>
+                            </div>
                         </div>
 
                         <div class="settings-footer">
@@ -382,10 +389,14 @@
             </div>
             <div class="confirm-body">
                 <p id="confirmMessage">Weet je zeker dat je deze actie wilt uitvoeren?</p>
+                <div id="confirmInputContainer" style="display: none;">
+                    <p class="confirm-instruction">Type "CONFIRM" om te bevestigen:</p>
+                    <input type="text" id="confirmInput" placeholder="CONFIRM" class="confirm-input">
+                </div>
             </div>
             <div class="confirm-actions">
                 <button class="btn btn-secondary" id="confirmCancel">Annuleren</button>
-                <button class="btn btn-danger" id="confirmDelete">Verwijderen</button>
+                <button class="btn btn-danger" id="confirmDelete" disabled>Verwijderen</button>
             </div>
         </div>
     </div>

@@ -234,12 +234,23 @@ class WordListManager {
 
     // Confirmation modal functionality
     showConfirmModal(title, message, onConfirm) {
+        this.pendingConfirmation = onConfirm;
         document.getElementById('confirmTitle').textContent = title;
         document.getElementById('confirmMessage').textContent = message;
+        document.getElementById('confirmInputContainer').style.display = 'none';
+        document.getElementById('confirmDelete').disabled = false;
         document.getElementById('confirmModal').style.display = 'block';
+    }
 
-        // Store the confirmation callback
+    showConfirmModalWithInput(title, message, onConfirm) {
         this.pendingConfirmation = onConfirm;
+        document.getElementById('confirmTitle').textContent = title;
+        document.getElementById('confirmMessage').textContent = message;
+        document.getElementById('confirmInputContainer').style.display = 'block';
+        document.getElementById('confirmDelete').disabled = true;
+        document.getElementById('confirmInput').value = '';
+        document.getElementById('confirmModal').style.display = 'block';
+        document.getElementById('confirmInput').focus();
     }
 
     hideConfirmModal() {
@@ -1195,6 +1206,31 @@ class WordListManager {
         this.renderWordsList();
     }
 
+    deleteAllLists() {
+        if (this.lists.length === 0) {
+            this.showPopup('Geen Lijsten', 'Er zijn geen lijsten om te verwijderen.');
+            return;
+        }
+
+        const totalLists = this.lists.length;
+        const totalWords = this.lists.reduce((total, list) => total + list.words.length, 0);
+
+        const confirmMessage = `Weet je zeker dat je ALLE lijsten wilt verwijderen?\n\n` +
+            `Dit zal permantent verwijderd worden:\n` +
+            `• ${totalLists} lijst(en)\n` +
+            `• ${totalWords} woord(en)\n\n` +
+            `Deze actie kan niet ongedaan worden gemaakt.`;
+
+        this.showConfirmModalWithInput('Alle Lijsten Verwijderen', confirmMessage, () => {
+            this.lists = [];
+            this.filteredLists = [];
+            this.saveLists();
+            this.renderLists();
+            this.hideSettingsModal();
+            this.showPopup('Verwijderd', `Alle ${totalLists} lijsten zijn succesvol verwijderd.`);
+        });
+    }
+
     editList(listId) {
         const list = this.getList(listId);
         if (!list) return;
@@ -1449,6 +1485,19 @@ class WordListManager {
             this.executeConfirmation();
         });
 
+        // Confirmation input functionality
+        document.getElementById('confirmInput').addEventListener('input', (e) => {
+            const inputValue = e.target.value.trim();
+            const deleteButton = document.getElementById('confirmDelete');
+            deleteButton.disabled = inputValue !== 'CONFIRM';
+        });
+
+        document.getElementById('confirmInput').addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' && e.target.value.trim() === 'CONFIRM') {
+                this.executeConfirmation();
+            }
+        });
+
         // JSON Structure modal buttons
         document.getElementById('showJsonStructureBtn').addEventListener('click', () => {
             this.showJsonStructureModal();
@@ -1464,6 +1513,11 @@ class WordListManager {
 
         document.getElementById('downloadJsonTemplateBtn').addEventListener('click', () => {
             this.downloadJsonTemplate();
+        });
+
+        // Delete all lists functionality
+        document.getElementById('deleteAllListsBtn').addEventListener('click', () => {
+            this.deleteAllLists();
         });
 
         // Search functionality
