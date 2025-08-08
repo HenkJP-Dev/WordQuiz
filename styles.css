@@ -98,12 +98,65 @@ header a:hover svg {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 30px;
+    margin-bottom: 20px;
     background: var(--bg-secondary);
     padding: 20px;
     border-radius: 10px;
     box-shadow: var(--shadow);
     transition: background 0.3s ease, box-shadow 0.3s ease;
+}
+
+.search-filter-container {
+    margin-bottom: 25px;
+}
+
+.search-box {
+    display: flex;
+    gap: 15px;
+    align-items: center;
+    max-width: 600px;
+}
+
+.search-input {
+    flex: 1;
+    padding: 12px 16px;
+    border: 2px solid var(--border-color);
+    border-radius: 8px;
+    font-size: 1rem;
+    background: var(--bg-secondary);
+    color: var(--text-primary);
+    transition: border-color 0.3s ease;
+}
+
+.search-input:focus {
+    outline: none;
+    border-color: #667eea;
+}
+
+.search-input::placeholder {
+    color: var(--text-muted);
+}
+
+.search-filter {
+    padding: 12px 16px;
+    border: 2px solid var(--border-color);
+    border-radius: 8px;
+    font-size: 1rem;
+    background: var(--bg-secondary);
+    color: var(--text-primary);
+    cursor: pointer;
+    transition: border-color 0.3s ease;
+    min-width: 150px;
+}
+
+.search-filter:focus {
+    outline: none;
+    border-color: #667eea;
+}
+
+.search-filter option {
+    background: var(--bg-secondary);
+    color: var(--text-primary);
 }
 
 .lists-header h2 {
@@ -463,8 +516,13 @@ header a:hover svg {
 
 .toggle-switch input {
     opacity: 0;
-    width: 0;
-    height: 0;
+    width: 100%;
+    height: 100%;
+    position: absolute;
+    top: 0;
+    left: 0;
+    cursor: pointer;
+    z-index: 2;
 }
 
 .slider {
@@ -477,6 +535,7 @@ header a:hover svg {
     background-color: #ccc;
     transition: 0.3s;
     border-radius: 24px;
+    z-index: 1;
 }
 
 .slider:before {
@@ -520,12 +579,94 @@ input:checked+.slider:before {
 
 /* Edit List Modal */
 .edit-modal .modal-content {
-    max-width: 90vw;
-    width: 800px;
+    max-width: 95vw;
+    width: 1200px;
     max-height: 90vh;
     height: 90vh;
-    overflow-y: auto;
+    overflow: hidden;
     margin: 5vh auto;
+}
+
+.edit-list-content {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 30px;
+    height: calc(100% - 80px);
+    /* Account for header */
+    overflow: hidden;
+}
+
+.add-word-section {
+    display: flex;
+    flex-direction: column;
+    height: fit-content;
+    max-height: none;
+    overflow-y: auto;
+}
+
+.words-list-section {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    overflow-y: auto;
+}
+
+.word-search-container {
+    margin-bottom: 15px;
+}
+
+.word-search-input {
+    width: 100%;
+    padding: 10px 12px;
+    border: 2px solid var(--border-color);
+    border-radius: 6px;
+    font-size: 0.9rem;
+    background: var(--bg-secondary);
+    color: var(--text-primary);
+    transition: border-color 0.3s ease;
+}
+
+.word-search-input:focus {
+    outline: none;
+    border-color: #667eea;
+}
+
+.word-search-input::placeholder {
+    color: var(--text-muted);
+}
+
+.edit-word-modal .modal-content {
+    max-width: 600px;
+    width: 90vw;
+    max-height: 80vh;
+    overflow-y: auto;
+    margin: 10vh auto;
+}
+
+.edit-word-header {
+    margin-bottom: 25px;
+    padding-bottom: 15px;
+    border-bottom: 2px solid var(--border-color);
+}
+
+.edit-word-header h3 {
+    margin-bottom: 8px;
+    color: var(--text-primary);
+}
+
+.edit-word-form {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.edit-word-actions {
+    display: flex;
+    gap: 15px;
+    justify-content: flex-end;
+    margin-top: 20px;
+    padding-top: 20px;
+    border-top: 2px solid var(--border-color);
 }
 
 .edit-header {
@@ -595,6 +736,20 @@ input:checked+.slider:before {
     gap: 15px;
 }
 
+.synonyms-inputs {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 15px;
+    margin-top: 15px;
+}
+
+.help-text {
+    color: var(--text-muted);
+    font-size: 0.8rem;
+    margin-top: 4px;
+    display: block;
+}
+
 .words-list-section h4 {
     margin-bottom: 15px;
     color: var(--text-primary);
@@ -605,7 +760,6 @@ input:checked+.slider:before {
     display: flex;
     flex-direction: column;
     gap: 10px;
-    max-height: 400px;
     overflow-y: auto;
 }
 
@@ -720,6 +874,20 @@ input:checked+.slider:before {
 
 .test-options {
     margin-bottom: 30px;
+}
+
+.test-options .toggle-switch {
+    display: inline-block;
+    margin-left: 10px;
+    position: relative;
+    cursor: pointer;
+}
+
+.test-options .help-text {
+    color: var(--text-muted);
+    font-size: 0.8rem;
+    margin-top: 5px;
+    display: block;
 }
 
 .test-select {
@@ -1102,6 +1270,18 @@ input:checked+.slider:before {
         text-align: center;
     }
 
+    .search-box {
+        flex-direction: column;
+        gap: 10px;
+        max-width: 100%;
+    }
+
+    .search-input,
+    .search-filter {
+        width: 100%;
+        min-width: auto;
+    }
+
     .lists-container {
         grid-template-columns: 1fr;
     }
@@ -1158,8 +1338,29 @@ input:checked+.slider:before {
         padding: 15px;
     }
 
+    .edit-list-content {
+        grid-template-columns: 1fr;
+        gap: 20px;
+        height: calc(100% - 80px);
+    }
+
+    .add-word-section {
+        height: fit-content;
+        max-height: none;
+    }
+
+    .words-list-section {
+        height: auto;
+        max-height: 60vh;
+    }
+
     .words-list {
-        max-height: 300px;
+        max-height: none;
+    }
+
+    .synonyms-inputs {
+        grid-template-columns: 1fr;
+        gap: 10px;
     }
 }
 
@@ -1234,4 +1435,44 @@ input:checked+.slider:before {
 .json-structure-buttons {
     display: flex;
     gap: 10px;
+}
+
+.settings-footer {
+    margin-top: 30px;
+    padding-top: 20px;
+    border-top: 2px solid var(--border-color);
+    text-align: center;
+}
+
+.settings-footer p {
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+    margin: 0;
+}
+
+.settings-footer a {
+    color: var(--text-primary);
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 5px 10px;
+    border-radius: 6px;
+    transition: all 0.3s ease;
+    background: var(--bg-primary);
+    border: 1px solid var(--border-color);
+}
+
+.settings-footer a:hover {
+    background: var(--bg-secondary);
+    transform: translateY(-1px);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.settings-footer svg {
+    transition: transform 0.3s ease;
+}
+
+.settings-footer a:hover svg {
+    transform: scale(1.1);
 }

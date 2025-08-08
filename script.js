@@ -4,6 +4,9 @@ class WordListManager {
         this.lists = this.loadLists();
         this.currentTheme = this.loadTheme();
         this.languagesSwapped = this.loadLanguageSwap();
+        this.useSourceSynonyms = false; // Track source synonyms setting
+        this.filteredLists = [...this.lists]; // Track filtered lists
+        this.filteredWords = []; // Track filtered words in edit modal
         this.init();
     }
 
@@ -68,6 +71,7 @@ class WordListManager {
         };
 
         this.lists.push(newList);
+        this.filteredLists = [...this.lists]; // Update filtered lists
         this.saveLists();
         this.renderLists();
 
@@ -88,6 +92,7 @@ class WordListManager {
 
         this.showConfirmModal('Lijst Verwijderen', confirmMessage, () => {
             this.lists = this.lists.filter(list => list.id !== listId);
+            this.filteredLists = [...this.lists]; // Update filtered lists
             this.saveLists();
             this.renderLists();
         });
@@ -114,20 +119,29 @@ class WordListManager {
     renderLists() {
         const container = document.getElementById('listsContainer');
 
-        if (this.lists.length === 0) {
-            container.innerHTML = `
-                <div class="empty-state">
-                    <h3>Nog geen woordenlijsten</h3>
-                    <p>Maak je eerste woordenlijst om te beginnen met leren!</p>
-                    <button class="btn btn-primary" onclick="wordListManager.showAddListModal()">
-                        Maak Je Eerste Lijst
-                    </button>
-                </div>
-            `;
+        if (this.filteredLists.length === 0) {
+            if (this.lists.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <h3>Nog geen woordenlijsten</h3>
+                        <p>Maak je eerste woordenlijst om te beginnen met leren!</p>
+                        <button class="btn btn-primary" onclick="wordListManager.showAddListModal()">
+                            Maak Je Eerste Lijst
+                        </button>
+                    </div>
+                `;
+            } else {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <h3>Geen resultaten gevonden</h3>
+                        <p>Probeer een andere zoekterm of filter.</p>
+                    </div>
+                `;
+            }
             return;
         }
 
-        container.innerHTML = this.lists.map(list => {
+        container.innerHTML = this.filteredLists.map(list => {
             const displaySource = this.languagesSwapped ? list.targetLanguage : list.sourceLanguage;
             const displayTarget = this.languagesSwapped ? list.sourceLanguage : list.targetLanguage;
 
@@ -247,21 +261,27 @@ class WordListManager {
                     "id": "1705312200000abc123",
                     "name": "listname",
                     "sourceLanguage": "Language to learn",
-                    "translationLanguage": "User Language",
+                    "targetLanguage": "User Language",
                     "words": [
                         {
                             "source": "word1",
-                            "translation": "translation1",
+                            "target": "translation1",
+                            "sourceSynonyms": ["synonym1", "synonym2"],
+                            "targetSynonyms": ["synonym1", "synonym2"],
                             "addedAt": "2024-01-15T10:30:00.000Z"
                         },
                         {
                             "source": "word2",
-                            "translation": "translation2",
+                            "target": "translation2",
+                            "sourceSynonyms": [],
+                            "targetSynonyms": ["synonym1"],
                             "addedAt": "2024-01-15T10:30:00.000Z"
                         },
                         {
                             "source": "word3",
-                            "translation": "translation3",
+                            "target": "translation3",
+                            "sourceSynonyms": ["synonym1"],
+                            "targetSynonyms": [],
                             "addedAt": "2024-01-15T10:30:00.000Z"
                         }
                     ],
@@ -301,21 +321,27 @@ class WordListManager {
                     "id": "1705312200000abc123",
                     "name": "listname",
                     "sourceLanguage": "Language to learn",
-                    "translationLanguage": "User Language",
+                    "targetLanguage": "User Language",
                     "words": [
                         {
                             "source": "word1",
-                            "translation": "translation1",
+                            "target": "translation1",
+                            "sourceSynonyms": ["synonym1", "synonym2"],
+                            "targetSynonyms": ["synonym1", "synonym2"],
                             "addedAt": "2024-01-15T10:30:00.000Z"
                         },
                         {
                             "source": "word2",
-                            "translation": "translation2",
+                            "target": "translation2",
+                            "sourceSynonyms": [],
+                            "targetSynonyms": ["synonym1"],
                             "addedAt": "2024-01-15T10:30:00.000Z"
                         },
                         {
                             "source": "word3",
-                            "translation": "translation3",
+                            "target": "translation3",
+                            "sourceSynonyms": ["synonym1"],
+                            "targetSynonyms": [],
                             "addedAt": "2024-01-15T10:30:00.000Z"
                         }
                     ],
@@ -481,6 +507,7 @@ class WordListManager {
                     importedCount++;
                 });
 
+                this.filteredLists = [...this.lists]; // Update filtered lists
                 this.saveLists();
                 this.renderLists();
 
@@ -552,6 +579,14 @@ class WordListManager {
         // Update labels based on swap setting
         sourceLabel.textContent = `${languages.source} Woord:`;
         targetLabel.textContent = `${languages.target} Vertaling:`;
+
+        // Update synonym labels
+        const sourceSynonymsLabel = document.getElementById('sourceSynonymsLabel');
+        const targetSynonymsLabel = document.getElementById('targetSynonymsLabel');
+        if (sourceSynonymsLabel && targetSynonymsLabel) {
+            sourceSynonymsLabel.textContent = `Synoniemen (${languages.source}):`;
+            targetSynonymsLabel.textContent = `Synoniemen (${languages.target}):`;
+        }
     }
 
     renderWordsList() {
@@ -560,61 +595,87 @@ class WordListManager {
         const container = document.getElementById('wordsList');
         const countElement = document.getElementById('wordCount');
 
+        // Use filtered words if available, otherwise use all words
+        const wordsToDisplay = this.filteredWords.length > 0 ? this.filteredWords : this.currentEditingList.words;
+
         countElement.textContent = this.currentEditingList.words.length;
 
-        if (this.currentEditingList.words.length === 0) {
-            container.innerHTML = `
-                <div class="empty-words">
-                    <p>Nog geen woorden toegevoegd. Voeg je eerste woord hierboven toe!</p>
-                </div>
-            `;
+        if (wordsToDisplay.length === 0) {
+            if (this.currentEditingList.words.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-words">
+                        <p>Nog geen woorden toegevoegd. Voeg je eerste woord hierboven toe!</p>
+                    </div>
+                `;
+            } else {
+                container.innerHTML = `
+                    <div class="empty-words">
+                        <p>Geen woorden gevonden die overeenkomen met je zoekopdracht.</p>
+                    </div>
+                `;
+            }
             return;
         }
 
-        container.innerHTML = this.currentEditingList.words.map((word, index) => {
+        container.innerHTML = wordsToDisplay.map((word, index) => {
             const languages = this.getDisplayLanguages(this.currentEditingList);
             const displaySource = this.languagesSwapped ? word.target : word.source;
             const displayTarget = this.languagesSwapped ? word.source : word.target;
+            const displaySourceSynonyms = this.languagesSwapped ? (word.targetSynonyms || []) : (word.sourceSynonyms || []);
+            const displayTargetSynonyms = this.languagesSwapped ? (word.sourceSynonyms || []) : (word.targetSynonyms || []);
+
+            const sourceSynonymsText = displaySourceSynonyms.length > 0 ? ` (${displaySourceSynonyms.join(', ')})` : '';
+            const targetSynonymsText = displayTargetSynonyms.length > 0 ? ` (${displayTargetSynonyms.join(', ')})` : '';
 
             return `
                 <div class="word-item">
                     <div class="word-content">
-                        <div class="word-source">${displaySource}</div>
-                        <div class="word-target">${displayTarget}</div>
+                        <div class="word-source">${displaySource}${sourceSynonymsText}</div>
+                        <div class="word-target">${displayTarget}${targetSynonymsText}</div>
                     </div>
                     <div class="word-actions">
-                        <button class="btn btn-small btn-danger" onclick="wordListManager.deleteWord(${index})">
-                            Verwijderen
-                        </button>
+                        <button class="btn btn-small btn-warning" onclick="wordListManager.editWord(${index})">Bewerken</button>
+                        <button class="btn btn-small btn-danger" onclick="wordListManager.deleteWord(${index})">Verwijderen</button>
                     </div>
                 </div>
             `;
         }).join('');
     }
 
-    addWord(sourceWord, targetWord) {
+    addWord(sourceWord, targetWord, sourceSynonyms = '', targetSynonyms = '') {
         if (!this.currentEditingList) return;
 
         // Determine the actual source and target based on swap setting
-        let actualSource, actualTarget;
+        let actualSource, actualTarget, actualSourceSynonyms, actualTargetSynonyms;
 
         if (this.languagesSwapped) {
             // If swapped, the "source" input is actually the target language
             actualSource = targetWord.trim();
             actualTarget = sourceWord.trim();
+            actualSourceSynonyms = targetSynonyms.trim();
+            actualTargetSynonyms = sourceSynonyms.trim();
         } else {
             // If not swapped, use the inputs as-is
             actualSource = sourceWord.trim();
             actualTarget = targetWord.trim();
+            actualSourceSynonyms = sourceSynonyms.trim();
+            actualTargetSynonyms = targetSynonyms.trim();
         }
+
+        // Parse synonyms into arrays
+        const sourceSynonymsArray = actualSourceSynonyms ? actualSourceSynonyms.split(',').map(s => s.trim()).filter(s => s) : [];
+        const targetSynonymsArray = actualTargetSynonyms ? actualTargetSynonyms.split(',').map(s => s.trim()).filter(s => s) : [];
 
         const newWord = {
             source: actualSource,
             target: actualTarget,
+            sourceSynonyms: sourceSynonymsArray,
+            targetSynonyms: targetSynonymsArray,
             addedAt: new Date().toISOString()
         };
 
         this.currentEditingList.words.push(newWord);
+        this.filteredWords = []; // Clear word search when adding new word
         this.saveLists();
         this.renderWordsList();
         this.renderLists(); // Update the main list display
@@ -625,10 +686,107 @@ class WordListManager {
 
         this.showConfirmModal('Woord Verwijderen', 'Weet je zeker dat je dit woord wilt verwijderen?', () => {
             this.currentEditingList.words.splice(wordIndex, 1);
+            this.filteredWords = []; // Clear word search when deleting word
             this.saveLists();
             this.renderWordsList();
             this.renderLists(); // Update the main list display
         });
+    }
+
+    editWord(wordIndex) {
+        if (!this.currentEditingList) return;
+
+        const word = this.currentEditingList.words[wordIndex];
+        if (!word) return;
+
+        // Store the word index for updating
+        this.currentEditingWordIndex = wordIndex;
+
+        // Get display languages
+        const languages = this.getDisplayLanguages(this.currentEditingList);
+
+        // Update labels
+        document.getElementById('editSourceWordLabel').textContent = `${languages.source} Woord:`;
+        document.getElementById('editTargetWordLabel').textContent = `${languages.target} Vertaling:`;
+        document.getElementById('editSourceSynonymsLabel').textContent = `Synoniemen (${languages.source}):`;
+        document.getElementById('editTargetSynonymsLabel').textContent = `Synoniemen (${languages.target}):`;
+
+        // Determine which values to show based on language swap
+        let displaySource, displayTarget, displaySourceSynonyms, displayTargetSynonyms;
+
+        if (this.languagesSwapped) {
+            displaySource = word.target;
+            displayTarget = word.source;
+            displaySourceSynonyms = word.targetSynonyms ? word.targetSynonyms.join(', ') : '';
+            displayTargetSynonyms = word.sourceSynonyms ? word.sourceSynonyms.join(', ') : '';
+        } else {
+            displaySource = word.source;
+            displayTarget = word.target;
+            displaySourceSynonyms = word.sourceSynonyms ? word.sourceSynonyms.join(', ') : '';
+            displayTargetSynonyms = word.targetSynonyms ? word.targetSynonyms.join(', ') : '';
+        }
+
+        // Populate form fields
+        document.getElementById('editSourceWord').value = displaySource;
+        document.getElementById('editTargetWord').value = displayTarget;
+        document.getElementById('editSourceSynonyms').value = displaySourceSynonyms;
+        document.getElementById('editTargetSynonyms').value = displayTargetSynonyms;
+
+        // Show the edit modal
+        this.showEditWordModal();
+    }
+
+    showEditWordModal() {
+        const modal = document.getElementById('editWordModal');
+        modal.style.display = 'block';
+        document.getElementById('editSourceWord').focus();
+    }
+
+    hideEditWordModal() {
+        const modal = document.getElementById('editWordModal');
+        modal.style.display = 'none';
+        this.currentEditingWordIndex = null;
+        document.getElementById('editWordForm').reset();
+    }
+
+    updateWord(wordIndex, sourceWord, targetWord, sourceSynonyms = '', targetSynonyms = '') {
+        if (!this.currentEditingList || wordIndex === null) return;
+
+        // Determine the actual source and target based on swap setting
+        let actualSource, actualTarget, actualSourceSynonyms, actualTargetSynonyms;
+
+        if (this.languagesSwapped) {
+            // If swapped, the "source" input is actually the target language
+            actualSource = targetWord.trim();
+            actualTarget = sourceWord.trim();
+            actualSourceSynonyms = targetSynonyms.trim();
+            actualTargetSynonyms = sourceSynonyms.trim();
+        } else {
+            // If not swapped, use the inputs as-is
+            actualSource = sourceWord.trim();
+            actualTarget = targetWord.trim();
+            actualSourceSynonyms = sourceSynonyms.trim();
+            actualTargetSynonyms = targetSynonyms.trim();
+        }
+
+        // Parse synonyms into arrays
+        const sourceSynonymsArray = actualSourceSynonyms ? actualSourceSynonyms.split(',').map(s => s.trim()).filter(s => s) : [];
+        const targetSynonymsArray = actualTargetSynonyms ? actualTargetSynonyms.split(',').map(s => s.trim()).filter(s => s) : [];
+
+        // Update the word
+        this.currentEditingList.words[wordIndex] = {
+            source: actualSource,
+            target: actualTarget,
+            sourceSynonyms: sourceSynonymsArray,
+            targetSynonyms: targetSynonymsArray,
+            addedAt: this.currentEditingList.words[wordIndex].addedAt // Preserve original creation date
+        };
+
+        this.saveLists();
+        this.filteredWords = []; // Clear word search when updating word
+        this.renderWordsList();
+        this.renderLists(); // Update the main list display
+        this.hideEditWordModal();
     }
 
     // Test functionality
@@ -676,6 +834,7 @@ class WordListManager {
         if (!this.currentTestList) return;
 
         const wordCount = document.getElementById('testWordCount').value;
+        const useSourceSynonyms = document.getElementById('useSourceSynonyms').checked;
         const totalWords = this.currentTestList.words.length;
 
         this.testWords = [...this.currentTestList.words];
@@ -695,6 +854,7 @@ class WordListManager {
         this.testResults = [];
         this.incorrectWords = []; // Track words that need to be repeated
         this.originalWordCount = this.testWords.length; // Store original count
+        this.useSourceSynonyms = useSourceSynonyms; // Store source synonyms setting
 
         this.showQuestion();
     }
@@ -723,9 +883,27 @@ class WordListManager {
         const currentWord = this.testWords[this.currentQuestionIndex];
         const languages = this.getDisplayLanguages(this.currentTestList);
 
-        // Determine which word to show based on language swap setting
-        const questionWord = this.languagesSwapped ? currentWord.target : currentWord.source;
-        const correctAnswer = this.languagesSwapped ? currentWord.source : currentWord.target;
+        // Determine which word to show based on language swap setting and source synonyms option
+        let questionWord, correctAnswer;
+
+        if (this.languagesSwapped) {
+            questionWord = currentWord.target;
+            correctAnswer = currentWord.source;
+        } else {
+            questionWord = currentWord.source;
+            correctAnswer = currentWord.target;
+        }
+
+        // If source synonyms are enabled, randomly select from synonyms or main word
+        if (this.useSourceSynonyms) {
+            // Get synonyms for the question word (not the answer word)
+            const questionSynonyms = this.languagesSwapped ? (currentWord.targetSynonyms || []) : (currentWord.sourceSynonyms || []);
+            if (questionSynonyms.length > 0) {
+                // Randomly choose between main word and synonyms
+                const allOptions = [questionWord, ...questionSynonyms];
+                questionWord = allOptions[Math.floor(Math.random() * allOptions.length)];
+            }
+        }
 
         document.getElementById('questionText').textContent = `Vertaal dit woord:`;
         document.getElementById('wordToTranslate').textContent = questionWord;
@@ -751,8 +929,9 @@ class WordListManager {
         document.getElementById('answerFeedback').style.display = 'none';
         document.getElementById('userAnswer').focus();
 
-        // Store correct answer for validation
+        // Store correct answer and synonyms for validation
         this.currentCorrectAnswer = correctAnswer;
+        this.currentSynonyms = this.languagesSwapped ? currentWord.sourceSynonyms || [] : currentWord.targetSynonyms || [];
 
         // Show question screen
         document.getElementById('testSetup').style.display = 'none';
@@ -761,8 +940,20 @@ class WordListManager {
     }
 
     submitAnswer(userAnswer) {
-        const isCorrect = this.checkAnswer(userAnswer, this.currentCorrectAnswer);
         const currentWord = this.testWords[this.currentQuestionIndex];
+        const languages = this.getDisplayLanguages(this.currentTestList);
+
+        // Get the correct answer and synonyms based on language swap setting
+        let correctAnswer, synonyms;
+        if (this.languagesSwapped) {
+            correctAnswer = currentWord.source;
+            synonyms = currentWord.sourceSynonyms || [];
+        } else {
+            correctAnswer = currentWord.target;
+            synonyms = currentWord.targetSynonyms || [];
+        }
+
+        const isCorrect = this.checkAnswer(userAnswer, correctAnswer, synonyms);
 
         // Store result
         this.testResults.push({
@@ -786,18 +977,52 @@ class WordListManager {
         }
     }
 
-    checkAnswer(userAnswer, correctAnswer) {
-        // Simple case-insensitive comparison
-        return userAnswer.trim().toLowerCase() === correctAnswer.trim().toLowerCase();
+    checkAnswer(userAnswer, correctAnswer, synonyms = []) {
+        const userAnswerLower = userAnswer.trim().toLowerCase();
+        const correctAnswerLower = correctAnswer.trim().toLowerCase();
+
+        // Check against the main answer
+        if (userAnswerLower === correctAnswerLower) {
+            return true;
+        }
+
+        // Check against synonyms
+        for (const synonym of synonyms) {
+            if (userAnswerLower === synonym.trim().toLowerCase()) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     showAnswerFeedback(userAnswer, correctAnswer) {
         // Hide the question form
         document.getElementById('answerForm').style.display = 'none';
 
+        // Get all correct answers including synonyms
+        const currentWord = this.testWords[this.currentQuestionIndex];
+        const languages = this.getDisplayLanguages(this.currentTestList);
+
+        let allCorrectAnswers = [correctAnswer];
+
+        // Add target synonyms (answer synonyms)
+        if (this.languagesSwapped) {
+            if (currentWord.sourceSynonyms && currentWord.sourceSynonyms.length > 0) {
+                allCorrectAnswers = allCorrectAnswers.concat(currentWord.sourceSynonyms);
+            }
+        } else {
+            if (currentWord.targetSynonyms && currentWord.targetSynonyms.length > 0) {
+                allCorrectAnswers = allCorrectAnswers.concat(currentWord.targetSynonyms);
+            }
+        }
+
+        // Note: We don't add source synonyms to the answer feedback
+        // because they are synonyms for the question word, not the answer word
+
         // Show feedback
         document.getElementById('userAnswerDisplay').textContent = userAnswer;
-        document.getElementById('correctAnswerDisplay').textContent = correctAnswer;
+        document.getElementById('correctAnswerDisplay').textContent = allCorrectAnswers.join(', ');
         document.getElementById('answerFeedback').style.display = 'block';
     }
 
@@ -857,6 +1082,23 @@ class WordListManager {
             const questionWord = this.languagesSwapped ? result.question.target : result.question.source;
             const correctAnswer = this.languagesSwapped ? result.question.source : result.question.target;
 
+            // Get all correct answers including synonyms
+            let allCorrectAnswers = [correctAnswer];
+
+            // Add target synonyms (answer synonyms)
+            if (this.languagesSwapped) {
+                if (result.question.sourceSynonyms && result.question.sourceSynonyms.length > 0) {
+                    allCorrectAnswers = allCorrectAnswers.concat(result.question.sourceSynonyms);
+                }
+            } else {
+                if (result.question.targetSynonyms && result.question.targetSynonyms.length > 0) {
+                    allCorrectAnswers = allCorrectAnswers.concat(result.question.targetSynonyms);
+                }
+            }
+
+            // Note: We don't add source synonyms to the answer feedback
+            // because they are synonyms for the question word, not the answer word
+
             const attempts = group.length;
             const isCorrect = group.some(r => r.isCorrect);
             const lastAttempt = group[group.length - 1];
@@ -871,7 +1113,7 @@ class WordListManager {
                     <div class="result-word">
                         <div class="result-question">${questionWord}${attemptInfo}</div>
                         <div class="result-answer">
-                            Eindantwoord: ${lastAttempt.userAnswer} | Correct: ${correctAnswer}
+                            Eindantwoord: ${lastAttempt.userAnswer} | Correct: ${allCorrectAnswers.join(', ')}
                         </div>
                     </div>
                     <span class="result-status ${isCorrect ? 'correct' : 'incorrect'}">
@@ -888,6 +1130,69 @@ class WordListManager {
         this.currentQuestionIndex = 0;
         this.testResults = [];
         this.currentCorrectAnswer = '';
+    }
+
+    // Search and filter functionality
+    performSearch() {
+        const searchTerm = document.getElementById('searchInput').value.toLowerCase().trim();
+        const filterType = document.getElementById('searchFilter').value;
+
+        if (!searchTerm) {
+            this.filteredLists = [...this.lists];
+        } else {
+            this.filteredLists = this.lists.filter(list => {
+                if (filterType === 'name') {
+                    return list.name.toLowerCase().includes(searchTerm);
+                } else if (filterType === 'language') {
+                    return list.sourceLanguage.toLowerCase().includes(searchTerm) ||
+                        list.targetLanguage.toLowerCase().includes(searchTerm);
+                }
+                return false;
+            });
+        }
+
+        this.renderLists();
+    }
+
+    clearSearch() {
+        document.getElementById('searchInput').value = '';
+        this.filteredLists = [...this.lists];
+        this.renderLists();
+    }
+
+    // Word search functionality
+    performWordSearch() {
+        const searchTerm = document.getElementById('wordSearchInput').value.toLowerCase().trim();
+
+        if (!searchTerm) {
+            this.filteredWords = [];
+        } else {
+            this.filteredWords = this.currentEditingList.words.filter(word => {
+                // Search in source word
+                if (word.source.toLowerCase().includes(searchTerm)) return true;
+
+                // Search in target word
+                if (word.target.toLowerCase().includes(searchTerm)) return true;
+
+                // Search in source synonyms
+                if (word.sourceSynonyms && word.sourceSynonyms.some(synonym =>
+                    synonym.toLowerCase().includes(searchTerm))) return true;
+
+                // Search in target synonyms
+                if (word.targetSynonyms && word.targetSynonyms.some(synonym =>
+                    synonym.toLowerCase().includes(searchTerm))) return true;
+
+                return false;
+            });
+        }
+
+        this.renderWordsList();
+    }
+
+    clearWordSearch() {
+        document.getElementById('wordSearchInput').value = '';
+        this.filteredWords = [];
+        this.renderWordsList();
     }
 
     editList(listId) {
@@ -947,6 +1252,10 @@ class WordListManager {
             this.hideEditListModal();
         });
 
+        document.getElementById('closeEditWord').addEventListener('click', () => {
+            this.hideEditWordModal();
+        });
+
         document.getElementById('closeTest').addEventListener('click', () => {
             this.hideTestModal();
         });
@@ -961,6 +1270,7 @@ class WordListManager {
             const addListModal = document.getElementById('addListModal');
             const settingsModal = document.getElementById('settingsModal');
             const editListModal = document.getElementById('editListModal');
+            const editWordModal = document.getElementById('editWordModal');
             const testModal = document.getElementById('testModal');
             const popupModal = document.getElementById('popupModal');
             const confirmModal = document.getElementById('confirmModal');
@@ -980,6 +1290,10 @@ class WordListManager {
 
             if (event.target === testModal) {
                 this.hideTestModal();
+            }
+
+            if (event.target === editWordModal) {
+                this.hideEditWordModal();
             }
 
             if (event.target === popupModal) {
@@ -1026,14 +1340,38 @@ class WordListManager {
             const formData = new FormData(e.target);
             const sourceWord = formData.get('sourceWord').trim();
             const targetWord = formData.get('targetWord').trim();
+            const sourceSynonyms = formData.get('sourceSynonyms').trim();
+            const targetSynonyms = formData.get('targetSynonyms').trim();
 
             if (!sourceWord || !targetWord) {
-                this.showPopup('Missing Information', 'Please fill in both word fields');
+                this.showPopup('Ontbrekende Informatie', 'Vul beide woordvelden in');
                 return;
             }
 
-            this.addWord(sourceWord, targetWord);
+            this.addWord(sourceWord, targetWord, sourceSynonyms, targetSynonyms);
             e.target.reset();
+        });
+
+        // Edit Word Form
+        document.getElementById('editWordForm').addEventListener('submit', (e) => {
+            e.preventDefault();
+
+            const formData = new FormData(e.target);
+            const sourceWord = formData.get('editSourceWord').trim();
+            const targetWord = formData.get('editTargetWord').trim();
+            const sourceSynonyms = formData.get('editSourceSynonyms').trim();
+            const targetSynonyms = formData.get('editTargetSynonyms').trim();
+
+            if (!sourceWord || !targetWord) {
+                this.showPopup('Ontbrekende Informatie', 'Vul beide woordvelden in');
+                return;
+            }
+
+            this.updateWord(this.currentEditingWordIndex, sourceWord, targetWord, sourceSynonyms, targetSynonyms);
+        });
+
+        document.getElementById('cancelEditWord').addEventListener('click', () => {
+            this.hideEditWordModal();
         });
 
         // Test Event Listeners
@@ -1126,6 +1464,20 @@ class WordListManager {
 
         document.getElementById('downloadJsonTemplateBtn').addEventListener('click', () => {
             this.downloadJsonTemplate();
+        });
+
+        // Search functionality
+        document.getElementById('searchInput').addEventListener('input', () => {
+            this.performSearch();
+        });
+
+        document.getElementById('searchFilter').addEventListener('change', () => {
+            this.performSearch();
+        });
+
+        // Word search functionality
+        document.getElementById('wordSearchInput').addEventListener('input', () => {
+            this.performWordSearch();
         });
 
         // Keyboard shortcuts
