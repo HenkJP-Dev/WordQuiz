@@ -675,14 +675,78 @@ input:checked+.slider:before {
     border-bottom: 2px solid var(--border-color);
 }
 
+.edit-title-container {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    margin-bottom: 10px;
+}
+
 .edit-header h3 {
-    margin-bottom: 8px;
+    margin: 0;
     color: var(--text-primary);
 }
 
 .list-info-display {
     color: var(--text-secondary);
     font-size: 0.95rem;
+}
+
+.list-name-container {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.list-name-container span {
+    font-size: 1.2rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    padding: 4px 8px;
+    background: var(--card-bg);
+    border-radius: 6px;
+    border: 1px solid var(--border-color);
+    min-width: 120px;
+}
+
+.edit-name-btn {
+    background: none;
+    border: none;
+    color: var(--text-muted);
+    cursor: pointer;
+    padding: 6px;
+    border-radius: 4px;
+    transition: all 0.2s ease;
+    opacity: 0.7;
+}
+
+.edit-name-btn:hover {
+    background: var(--bg-hover);
+    color: var(--text-primary);
+    opacity: 1;
+    transform: scale(1.1);
+}
+
+.edit-name-btn svg {
+    width: 16px;
+    height: 16px;
+}
+
+.list-name-input {
+    background: var(--bg-secondary);
+    border: 2px solid #667eea;
+    border-radius: 6px;
+    padding: 4px 8px;
+    font-size: 1.2rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    font-family: inherit;
+    min-width: 150px;
+}
+
+.list-name-input:focus {
+    outline: none;
+    border-color: #5a67d8;
 }
 
 .new-list-badge {

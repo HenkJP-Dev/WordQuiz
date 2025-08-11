@@ -570,6 +570,7 @@ class WordListManager {
         if (!this.currentEditingList) return;
 
         const title = document.getElementById('editListTitle');
+        const listName = document.getElementById('editListName');
         const info = document.getElementById('editListInfo');
         const sourceLabel = document.getElementById('sourceWordLabel');
         const targetLabel = document.getElementById('targetWordLabel');
@@ -579,7 +580,8 @@ class WordListManager {
         // Check if this is a newly created list (no words yet)
         const isNewList = this.currentEditingList.words.length === 0;
 
-        title.textContent = `Bewerken: ${this.currentEditingList.name}`;
+        title.textContent = 'Lijst Bewerken';
+        listName.textContent = this.currentEditingList.name;
         info.textContent = `${languages.source} → ${languages.target}`;
 
         // Add visual indicator for new lists
@@ -1231,6 +1233,85 @@ class WordListManager {
         });
     }
 
+    startEditListName() {
+        const listNameElement = document.getElementById('editListName');
+        const currentName = this.currentEditingList.name;
+
+        // Create input element
+        const input = document.createElement('input');
+        input.type = 'text';
+        input.value = currentName;
+        input.className = 'list-name-input';
+        input.id = 'editListNameInput';
+
+        // Replace the text with input
+        listNameElement.innerHTML = '';
+        listNameElement.appendChild(input);
+
+        // Focus and select all text
+        input.focus();
+        input.select();
+
+        // Add event listeners
+        input.addEventListener('blur', () => this.saveListName());
+        input.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+                this.saveListName();
+            } else if (e.key === 'Escape') {
+                this.cancelEditListName();
+            }
+        });
+    }
+
+    saveListName() {
+        const input = document.getElementById('editListNameInput');
+        if (!input) return;
+
+        const newName = input.value.trim();
+        const oldName = this.currentEditingList.name;
+
+        if (newName === oldName) {
+            this.cancelEditListName();
+            return;
+        }
+
+        if (newName === '') {
+            this.showPopup('Fout', 'Lijstnaam kan niet leeg zijn.');
+            input.focus();
+            return;
+        }
+
+        // Check if name already exists
+        const nameExists = this.lists.some(list =>
+            list.id !== this.currentEditingList.id &&
+            list.name.toLowerCase() === newName.toLowerCase()
+        );
+
+        if (nameExists) {
+            this.showPopup('Fout', 'Een lijst met deze naam bestaat al.');
+            input.focus();
+            return;
+        }
+
+        // Update the list name
+        this.currentEditingList.name = newName;
+        this.saveLists();
+
+        // Update the display
+        this.updateEditListInfo();
+        this.renderLists();
+
+        this.showPopup('Opgeslagen', `Lijstnaam gewijzigd van "${oldName}" naar "${newName}".`);
+    }
+
+    cancelEditListName() {
+        const listNameElement = document.getElementById('editListName');
+        const currentName = this.currentEditingList.name;
+
+        // Restore the original display
+        listNameElement.innerHTML = currentName;
+    }
+
     editList(listId) {
         const list = this.getList(listId);
         if (!list) return;
@@ -1518,6 +1599,11 @@ class WordListManager {
         // Delete all lists functionality
         document.getElementById('deleteAllListsBtn').addEventListener('click', () => {
             this.deleteAllLists();
+        });
+
+        // Edit list name functionality
+        document.getElementById('editListNameBtn').addEventListener('click', () => {
+            this.startEditListName();
         });
 
         // Search functionality
